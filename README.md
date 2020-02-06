@@ -1,31 +1,29 @@
 PokeTime
-====================
+=====================
 
-Workshop built using JavaFX and the very finest retro 8-bit graphics for teaching kids programming.
+Ein Workshop mit JavaFX und den allerbesten 8-Bit-Retro-Grafiken um Kindern das Programmieren beizubringen.
 
 http://bit.ly/pokemonworkshop
 
-## Build
+## Aufbau
 
-Currently PokeTim is built with OpenJDK 11 (depending on OpenJFX) and a recent Maven version.
+Zurzeit nutzt PokeTime OpenJDK 11 und eine aktuelle Maven Version.
 
-Build with 
+Bauen mit
 ```
 mvn package
 ```
 
-## Run
+## Starten
 
-PokeTime can be run as a standalone fat-jar. However, the pi4j integration needs some environment variables to
-work properly on a Raspberry Pi 2b, so we included them in a start script:
+Poketime kann als eigenständiges fat-jar gestartet werden. Die pi4j integration braucht
+allerdings ein paar Umgebungsvariablen um richtig auf einem Raspberry Pi 2b zu funktionieren.
+Also haben wir sie in ein start Script mit einbezogen.
 
 ```bash
 ./start
 ```
-
-## Parts
-
-These parts were used for our setup:
+## benötigte Hardware
 
 ```bash
 Raspberry Pi 3
@@ -37,5 +35,5 @@ Breadboard
 Connectors
 ```
 
+fröhliches Hacken!
 
-Happy hacking!
