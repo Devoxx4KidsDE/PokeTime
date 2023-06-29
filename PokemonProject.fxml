@@ -18,7 +18,7 @@
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.devoxx4kids.poketime.BattleSceneController">
     <ImageView fitHeight="480.0" fitWidth="800.0" pickOnBounds="true" preserveRatio="true">
-        <Image url="@src/main/resources/images/battle_background.png"/>
+        <Image url="@src/main/resources/images/backgrounds/battle_background.png"/>
     </ImageView>
     <ImageView fitHeight="150.0" fitWidth="200.0" layoutX="8.0" layoutY="330.0" pickOnBounds="true"
                preserveRatio="true">

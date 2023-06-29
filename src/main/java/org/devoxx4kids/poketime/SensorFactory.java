@@ -9,7 +9,6 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
-import com.pi4j.io.i2c.I2CFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
@@ -18,6 +17,8 @@ import joachimeichborn.sensors.driver.Tsl2561;
 
 import java.io.IOException;
 
+import static com.pi4j.io.i2c.I2CFactory.*;
+
 public class SensorFactory {
 
     private static SensorFactory factory;
@@ -25,15 +26,15 @@ public class SensorFactory {
     private I2CBus bus;
     private float lastGyroX;
 
-    public SensorFactory() throws IOException, I2CFactory.UnsupportedBusNumberException {
+    public SensorFactory() throws IOException, UnsupportedBusNumberException {
 
         if (PiSystem.isPiUnix) {
             gpio = GpioFactory.getInstance();
-            bus = I2CFactory.getInstance(I2CBus.BUS_1);
+            bus = getInstance(I2CBus.BUS_1);
         }
     }
 
-    public static SensorFactory create() throws IOException, I2CFactory.UnsupportedBusNumberException {
+    public static SensorFactory create() throws IOException, UnsupportedBusNumberException {
 
         if (factory == null) {
             factory = new SensorFactory();

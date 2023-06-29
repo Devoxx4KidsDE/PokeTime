@@ -17,7 +17,7 @@
 <AnchorPane prefHeight="480.0" prefWidth="800.0" stylesheets="@BattleScene.css" xmlns="http://javafx.com/javafx/8.0.111"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.devoxx4kids.poketime.BattleSceneController">
     <ImageView fx:id="battleBackground" fitHeight="480.0" fitWidth="800.0" pickOnBounds="true" preserveRatio="true">
-        <Image url="@images/battle_background.png"/>
+        <Image url="@images/backgrounds/battle_background.png"/>
     </ImageView>
     <ImageView fx:id="trainerPokemon" fitHeight="150.0" fitWidth="200.0" layoutX="8.0" layoutY="330.0"
                pickOnBounds="true" preserveRatio="true">

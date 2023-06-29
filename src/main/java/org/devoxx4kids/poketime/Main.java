@@ -16,6 +16,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 import javafx.fxml.FXMLLoader;
 
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -65,7 +66,7 @@ public class Main extends Application {
             Main.CELL_SIZE);
     public static BooleanProperty nacht = new SimpleBooleanProperty(false);
     public static Group spriteGroup = new Group();
-    public static SpriteView.PokeTrainer pokeTrainer;
+    public static PokeTrainer pokeTrainer;
     public static BooleanProperty earthquake = new SimpleBooleanProperty(false);
     private static Label messageDisplay;
     private static Label pokemonCounter;
@@ -81,7 +82,7 @@ public class Main extends Application {
 
                     if (health == 0) {
                         endBattle("Pokemontrainer ist geflohen!");
-                        pokeTrainer.die();
+                        pokeTrainer.gameover();
                     }
 
                     battleSceneController.playerHealth.setText(String.valueOf(health));
@@ -107,75 +108,7 @@ public class Main extends Application {
                     attackTransition.play();
                 }));
     private static boolean inBattle = false;
-    private static SpriteView.Pokemon enemy;
-
-    public static enum Direction {
-
-        DOWN(0),
-        LEFT(1),
-        RIGHT(2),
-        UP(3);
-
-        private final int offset;
-
-        Direction(int offset) {
-
-            this.offset = offset;
-        }
-
-        public int getOffset() {
-
-            return offset;
-        }
-
-
-        public int getXOffset() {
-
-            switch (this) {
-                case LEFT:
-                    return -1;
-
-                case RIGHT:
-                    return 1;
-
-                default:
-                    return 0;
-            }
-        }
-
-
-        public int getYOffset() {
-
-            switch (this) {
-                case UP:
-                    return -1;
-
-                case DOWN:
-                    return 1;
-
-                default:
-                    return 0;
-            }
-        }
-
-
-        public static Direction random() {
-
-            switch ((int) (4 * Math.random())) {
-                case 0:
-                    return DOWN;
-
-                case 1:
-                    return LEFT;
-
-                case 2:
-                    return RIGHT;
-
-                default:
-                    return UP;
-            }
-        }
-    }
+    private static Pokemon enemy;
 
     private ImageView background;
 
@@ -195,15 +128,15 @@ public class Main extends Application {
         messageDisplay = new Label();
         pokemonCounter = new Label();
 
-        pokeTrainer = new SpriteView.PokeTrainer(new Location(0, 3));
+        pokeTrainer = new PokeTrainer(new Location(0, 3));
 
-        // [3] Add some pokemon
-        spriteGroup.getChildren().add(new SpriteView.Rattfratz(new Location(8, 2)));
-        spriteGroup.getChildren().add(new SpriteView.Griffel(new Location(9, 4)));
-        spriteGroup.getChildren().add(new SpriteView.Bidiza(new Location(7, 6)));
-        spriteGroup.getChildren().add(new SpriteView.Krebscorps(new Location(5, 4)));
-        spriteGroup.getChildren().add(new SpriteView.Larvitar(new Location(6, 5)));
-        spriteGroup.getChildren().add(new SpriteView.Mampfaxo(new Location(3, 5)));
+        // ToDo: Neue Pokemon hinzufügen, Namen müssen Dateinamen in resources/images entsprechen
+        spriteGroup.getChildren().add(new Pokemon("Rattfratz", new Location(8, 2), 3, true, false));
+        spriteGroup.getChildren().add(new Pokemon("Griffel", new Location(9, 4), 2, true, true));
+        spriteGroup.getChildren().add(new Pokemon("Bidiza", new Location(7, 6), .5, true, true));
+        spriteGroup.getChildren().add(new Pokemon("Krebscorps", new Location(5, 4), 1.2, true, false));
+        spriteGroup.getChildren().add(new Pokemon("Larvitar", new Location(6, 5), 1.2, true, true));
+        spriteGroup.getChildren().add(new Pokemon("Mampfaxo", new Location(3, 5), .5, false, true));
 
         populateCells(root, pokeTrainer);
         root.getChildren().add(spriteGroup);
@@ -249,8 +182,7 @@ public class Main extends Application {
 
     private void populateBackground(Group root) {
 
-        // Image by Vinoth Chandar: https://www.flickr.com/photos/vinothchandar/7347749188/
-        background = new ImageView(Objects.requireNonNull(getClass().getResource("/images/forest.png")).toString());
+        background = new ImageView(Objects.requireNonNull(getClass().getResource("/images/backgrounds/forest.png")).toString());
         background.setFitHeight(BOARD_HEIGHT);
         background.setFitWidth(BOARD_WIDTH);
         root.getChildren().add(background);
@@ -306,19 +238,16 @@ public class Main extends Application {
                     case J:
                         if (key.isControlDown() && key.isShiftDown())
                             angreifen(3);
-
                         break;
 
                     case K:
                         if (key.isControlDown() && key.isShiftDown())
                             nacht.setValue(!nacht.getValue());
-
                         break;
 
                     case L:
                         if (key.isControlDown() && key.isShiftDown())
                             erdbeben();
-
                         break;
 
                     case ESCAPE:
@@ -375,7 +304,7 @@ public class Main extends Application {
             pokemonCounter.setText("Pokemon gefangen: " + ++pokemonCaught);
 
             if (sprites.size() == 1) {
-                pokeTrainer.win();
+                win();
             }
             // capture the pokemon
         }
@@ -383,8 +312,21 @@ public class Main extends Application {
         battleSceneController.enemyHealth.setText(String.valueOf(health));
     }
 
+        public static void win() {
 
-    public static void battle(SpriteView.Pokemon pokemon) {
+            Main.root.getChildren().add(new Rectangle(Main.BOARD_WIDTH, Main.BOARD_HEIGHT, Color.color(0, 0, 0, .4)));
+
+            Label label = new Label("DU HAST GEWONNEN!!!");
+            label.setTextFill(Color.LIGHTGREEN);
+            label.setAlignment(Pos.BASELINE_CENTER);
+            label.setFont(Main.pixelated);
+            label.setPrefHeight(Main.BOARD_HEIGHT);
+            label.setPrefWidth(Main.BOARD_WIDTH);
+            Main.root.getChildren().add(label);
+        }
+
+
+    public static void battle(Pokemon pokemon) {
 
         if (inBattle || gameover)
             return;
@@ -439,95 +381,4 @@ public class Main extends Application {
         });
     }
 
-    public static class Location {
-
-        int cell_x;
-        int cell_y;
-
-        public Location(int cell_x, int cell_y) {
-
-            this.cell_x = cell_x;
-            this.cell_y = cell_y;
-        }
-
-        public int getX() {
-
-            return cell_x;
-        }
-
-
-        public int getY() {
-
-            return cell_y;
-        }
-
-
-        public Location offset(int x, int y) {
-
-            return new Location(cell_x + x, cell_y + y);
-        }
-
-
-        public Direction directionTo(Location loc) {
-
-            if (Math.abs(loc.cell_x - cell_x) > Math.abs(loc.cell_y - cell_y)) {
-                return (loc.cell_x > cell_x) ? Direction.RIGHT : Direction.LEFT;
-            } else {
-                return (loc.cell_y > cell_y) ? Direction.DOWN : Direction.UP;
-            }
-        }
-
-
-        public Direction directionFrom(Location loc) {
-
-            if (Math.abs(loc.cell_x - cell_x) < Math.abs(loc.cell_y - cell_y)) {
-                return (loc.cell_x > cell_x) ? Direction.LEFT : Direction.RIGHT;
-            } else {
-                return (loc.cell_y > cell_y) ? Direction.UP : Direction.DOWN;
-            }
-        }
-
-
-        public int distance(Location loc) {
-
-            return (Math.abs(loc.cell_x - cell_x) + Math.abs(loc.cell_y - cell_y)) / 2;
-        }
-
-
-        @Override
-        public boolean equals(Object o) {
-
-            if (this == o)
-                return true;
-
-            if (o == null || getClass() != o.getClass())
-                return false;
-
-            Location location = (Location) o;
-
-            if (cell_x != location.cell_x)
-                return false;
-
-            return cell_y == location.cell_y;
-        }
-
-
-        @Override
-        public int hashCode() {
-
-            int result = cell_x;
-            result = 31 * result + cell_y;
-
-            return result;
-        }
-
-
-        @Override
-        public String toString() {
-
-            return "Location{"
-                + "cell_x=" + cell_x
-                + ", cell_y=" + cell_y + '}';
-        }
-    }
 }
