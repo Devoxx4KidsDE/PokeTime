@@ -1,39 +1,27 @@
 package org.devoxx4kids.poketime;
 
-import com.pi4j.component.gyroscope.analogdevices.ADXL345;
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.PinPullResistance;
-import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import com.pi4j.io.i2c.I2CBus;
-import com.pi4j.io.i2c.I2CDevice;
-import com.pi4j.io.i2c.I2CFactory;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import com.pi4j.Pi4J;
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalState;
 import javafx.beans.property.BooleanProperty;
-import javafx.util.Duration;
-import joachimeichborn.sensors.driver.Tsl2561;
 
-import java.io.IOException;
+import static com.pi4j.io.gpio.digital.PullResistance.PULL_UP;
 
 public class SensorFactory {
 
     private static SensorFactory factory;
-    private GpioController gpio;
-    private I2CBus bus;
-    private float lastGyroX;
+    Context pi4j = Pi4J.newAutoContext();
 
-    public SensorFactory() throws IOException, I2CFactory.UnsupportedBusNumberException {
+
+    public SensorFactory() {
 
         if (PiSystem.isPiUnix) {
-            gpio = GpioFactory.getInstance();
-            bus = I2CFactory.getInstance(I2CBus.BUS_1);
+            Main.displayAndLog("is pi :)");
         }
     }
 
-    public static SensorFactory create() throws IOException, I2CFactory.UnsupportedBusNumberException {
+    public static SensorFactory create(){
 
         if (factory == null) {
             factory = new SensorFactory();
@@ -43,80 +31,95 @@ public class SensorFactory {
     }
 
 
-    public void createButton() {
+    public void createButton(Context pi4j) {
 
-        if (PiSystem.isPiUnix) {
-            final GpioPinDigitalInput myButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07,
-                    PinPullResistance.PULL_UP);
+        final int PIN_BUTTON = 4; // PIN 7 = BCM 4
 
-            myButton.addListener((GpioPinListenerDigital) event -> {
-                boolean knopfGedrueckt = event.getState().isLow();
-                if (knopfGedrueckt)
-                    Main.displayAndLog("Knopf gedrueckt.");
-                // ToDo: Pokemon angreifen!
-            });
-        }
+        var buttonConfig = DigitalInput.newConfigBuilder(pi4j)
+            .id("button")
+            .name("Pokeball")
+            .address(PIN_BUTTON)
+            .pull(PULL_UP)
+            .debounce(3000L);
+
+        var button = pi4j.create(buttonConfig);
+        System.out.println("button created");
+        System.out.println("button config "+buttonConfig.toString());
+        System.out.println("button "+button.toString());
+
+
+        button.addListener(e -> {
+            if (e.state() == DigitalState.LOW) {
+                System.out.println("pressed");
+                Main.displayAndLog("Button pressed");
+                Main.angreifen(30);
+            }
+        });
+
+//        button.addListener(e -> {
+//            boolean knopfGedrueckt = e.state().isLow();
+//            if (knopfGedrueckt) {
+//                Main.displayAndLog("Button pressed");
+//                Main.angreifen(30);
+//            }
+//        });
     }
 
 
     public void createLightSensor(BooleanProperty nacht) {
-
-        if (PiSystem.isPiUnix) {
-            try {
-                I2CDevice device = bus.getDevice(0x39);
-                Tsl2561 lightSensor = new Tsl2561(device);
-                Timeline lightTimeline = new Timeline(new KeyFrame(Duration.seconds(10),
-                        actionEvent -> {
-                            try {
-                                double lux = lightSensor.getLux();
-                                Main.displayAndLog("lux = " + lux);
-                                // ToDo: Lass es Nacht werden!
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }));
-                lightTimeline.setCycleCount(Timeline.INDEFINITE);
-                lightTimeline.play();
-            } catch (IOException e) {
-                System.out.println("The light sensor should be connected properly... " + e.getMessage());
-            }
-        }
+        System.out.println("liiiight");
+//            try {
+//                I2CDevice device = bus.getDevice(0x39);
+//                Tsl2561 lightSensor = new Tsl2561(device);
+//                Timeline lightTimeline = new Timeline(new KeyFrame(Duration.seconds(10),
+//                        actionEvent -> {
+//                            try {
+//                                double lux = lightSensor.getLux();
+//                                Main.displayAndLog("lux = " + lux);
+//                                // ToDo: Lass es Nacht werden!
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }));
+//                lightTimeline.setCycleCount(Timeline.INDEFINITE);
+//                lightTimeline.play();
+//            } catch (IOException e) {
+//                System.out.println("The light sensor should be connected properly... " + e.getMessage());
+//            }
     }
 
 
     public void createAccelerometer() {
-
-        if (PiSystem.isPiUnix) {
-            try {
-                ADXL345 gyro = new ADXL345(bus);
-                gyro.init(gyro.X, 4);
-                lastGyroX = gyro.X.getRawValue();
-
-                Timeline gyroscopeTimeline = new Timeline(new KeyFrame(Duration.seconds(1),
-                        actionEvent -> {
-                            try {
-                                float x = gyro.X.getRawValue();
-                                System.out.println("gyro = " + Math.abs(x-lastGyroX));
-                                if (!Main.earthquake.getValue()) {
-                                    // Wenn der Sensor zu stark ausschlägt, erhöhe diesen Wert
-                                    if (Math.abs(x - lastGyroX) > 2000) {
-                                        Main.displayAndLog("Erdbeben!");
-                                        // ToDo: Lass es beben!
-
-                                    }
-                                }
-                                lastGyroX = x;
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }));
-                gyroscopeTimeline.setCycleCount(Timeline.INDEFINITE);
-                gyroscopeTimeline.play();
-            } catch (IOException e) {
-                System.out.println("The gyroscope should be connected properly... " + e.getMessage());
-            }
-        }
+        System.out.println("pi goes brrrr");
+//            try {
+//                ADXL345 gyro = new ADXL345(bus);
+//                gyro.init(gyro.X, 4);
+//                lastGyroX = gyro.X.getRawValue();
+//
+//                Timeline gyroscopeTimeline = new Timeline(new KeyFrame(Duration.seconds(1),
+//                        actionEvent -> {
+//                            try {
+//                                float x = gyro.X.getRawValue();
+//                                System.out.println("gyro = " + Math.abs(x-lastGyroX));
+//                                if (!Main.earthquake.getValue()) {
+//                                    // Wenn der Sensor zu stark ausschlägt, erhöhe diesen Wert
+//                                    if (Math.abs(x - lastGyroX) > 2000) {
+//                                        Main.displayAndLog("Erdbeben!");
+//                                        // ToDo: Lass es beben!
+//
+//                                    }
+//                                }
+//                                lastGyroX = x;
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }));
+//                gyroscopeTimeline.setCycleCount(Timeline.INDEFINITE);
+//                gyroscopeTimeline.play();
+//            } catch (IOException e) {
+//                System.out.println("The gyroscope should be connected properly... " + e.getMessage());
+//            }
     }
 }
 

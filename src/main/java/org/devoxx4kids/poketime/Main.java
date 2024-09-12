@@ -1,5 +1,10 @@
 package org.devoxx4kids.poketime;
 
+import com.pi4j.Pi4J;
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalState;
+import com.pi4j.io.gpio.digital.PullResistance;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -47,6 +52,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+import static com.pi4j.io.gpio.digital.PullResistance.PULL_UP;
+
 
 public class Main extends Application {
 
@@ -73,6 +80,7 @@ public class Main extends Application {
     private static Timeline clearMessageDisplay = new Timeline(new KeyFrame(Duration.seconds(5)));
     private static Parent battleScene;
     private static BattleSceneController battleSceneController;
+    private static Context pi4j = Pi4J.newAutoContext();
 
     private static Timeline battle = new Timeline(new KeyFrame(Duration.seconds(5),
                 actionEvent -> {
@@ -177,6 +185,23 @@ public class Main extends Application {
         }
     }
 
+    public DigitalInput createButton(Context pi4j) {
+
+        final int PIN_BUTTON = 24; // PIN 7 = BCM 4
+
+        var buttonConfig = DigitalInput.newConfigBuilder(pi4j)
+                .id("button")
+                .name("Pokeball2")
+                .address(PIN_BUTTON)
+                .pull(PullResistance.PULL_UP)
+                .debounce(3000L);
+
+        System.out.println("button2 config " + buttonConfig.toString());
+        var button = pi4j.create(buttonConfig);
+        System.out.println("Button created "+button.toString());
+        return button;
+    }
+
     private ImageView background;
 
     @Override
@@ -238,7 +263,16 @@ public class Main extends Application {
         battleScene.setVisible(false);
 
         SensorFactory sensorFactory = SensorFactory.create();
-        sensorFactory.createButton();
+        var button = createButton(pi4j);
+
+        button.addListener(e -> {
+            if (e.state() == DigitalState.LOW) {
+                System.out.println("2 pressed");
+                Main.displayAndLog("Button 2 pressed");
+                Main.angreifen(30);
+            }
+        });
+
         Main.pixelatedClock.isNight.bind(nacht);
         sensorFactory.createLightSensor(nacht);
         sensorFactory.createAccelerometer();

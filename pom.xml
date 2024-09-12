@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>11</javafx.version>
         <java.version>11</java.version>
-        <pi4j.version>1.1</pi4j.version>
+        <pi4j.version>2.6.1</pi4j.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -29,7 +29,9 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>linux</classifier>
         </dependency>
+        <!-- i4J and Plugins (Platforms and I/O Providers) -->
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-core</artifactId>
@@ -37,7 +39,12 @@
         </dependency>
         <dependency>
             <groupId>com.pi4j</groupId>
-            <artifactId>pi4j-device</artifactId>
+            <artifactId>pi4j-plugin-raspberrypi</artifactId>
+            <version>${pi4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-gpiod</artifactId>
             <version>${pi4j.version}</version>
         </dependency>
     </dependencies>
